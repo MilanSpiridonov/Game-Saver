@@ -13,13 +13,14 @@ public class SaveState : MonoBehaviour
         SceneName = SceneManager.GetActiveScene().name;
         try
         {
-            StreamReader initR = new StreamReader(Application.dataPath + "/" + "data_" + SceneName + ".txt");
+            StreamReader initR = new StreamReader(Application.dataPath + "/Saves/" + "data_" + SceneName + ".txt");
             foreach (string line in initR.ReadToEnd().Split('\n'))
             {
                 if (line != "")
                 {
-                    if (line.Split('~')[0] == "Loaded_Scene")
+                    if (line.Split('~')[0] == "Loaded_scene")
                     {
+                        Debug.LogError("MAAAMKA MU");
                         int ind = int.Parse(line.Split('~')[1]);
                         LoadGame(ind);
                     }
@@ -27,7 +28,7 @@ public class SaveState : MonoBehaviour
             }
             initR.Close();
             //Dinamically check/modify a new file that says if we're to load game
-            StreamWriter init = new StreamWriter(Application.dataPath + "/" + "data_" + SceneName + ".txt", false);
+            StreamWriter init = new StreamWriter(Application.dataPath + "/Saves/" + "data_" + SceneName + ".txt", false);
             init.Write("");
             init.Close();
         }
@@ -36,13 +37,13 @@ public class SaveState : MonoBehaviour
             Debug.LogError("Save file not found!");
         }
 
-    }    
+    }
     /// <summary>
     /// Saves the current state of the game, with an index of 0.
     /// </summary>
     public void SaveGame()
     {
-        string tempPath = Application.dataPath + "/" + "0_" + SceneName + ".txt";
+        string tempPath = Application.dataPath + "/Saves/" + "0_" + SceneName + ".txt";
         StreamWriter Clear = new StreamWriter(tempPath, false);
         Clear.Write("");
         Clear.Close();
@@ -83,7 +84,7 @@ public class SaveState : MonoBehaviour
     /// <param name="Save_index">In which slot you want to save your state.</param>
     public void SaveGame(int Save_index)
     {
-        string tempPath = Application.dataPath + "/" + Save_index.ToString() + "_" + SceneName + ".txt";
+        string tempPath = Application.dataPath + "/Saves/" + Save_index.ToString() + "_" + SceneName + ".txt";
         StreamWriter Clear = new StreamWriter(tempPath, false);
         Clear.Write("");
         Clear.Close();
@@ -122,7 +123,7 @@ public class SaveState : MonoBehaviour
     /// </summary>
     public void LoadGame()
     {
-        string tempPath = Application.dataPath + "/" + "0_" + SceneName + ".txt";
+        string tempPath = Application.dataPath + "/Saves/" + "0_" + SceneName + ".txt";
         StreamReader read = new StreamReader(tempPath);
         List<string> saveData = new List<string>();
         foreach (string line in read.ReadToEnd().Split('\n')) //Gets all lines (or save points)
@@ -184,12 +185,14 @@ public class SaveState : MonoBehaviour
     /// <param name="Scene"> Which scene you want to load. </param>
     public void LoadGame(int ind)
     {
-        string tempPath = Application.dataPath + "/" + ind.ToString() + "_" + SceneName + ".txt";
+        Debug.LogError("LOAD SCENE: " + ind);
+        string tempPath = Application.dataPath + "/Saves/" + ind.ToString() + "_" + SceneName + ".txt";
         StreamReader read = new StreamReader(tempPath);
         List<string> saveData = new List<string>();
         foreach (string line in read.ReadToEnd().Split('\n')) //Gets all lines (or save points)
             if (line != "") // skip the blank lines and add those with value.
                 saveData.Add(line);
+        read.Close();
         foreach (string line in saveData)
         {
             foreach (GameObject Obj in toSave)
@@ -238,14 +241,14 @@ public class SaveState : MonoBehaviour
         }
     }
 
-    public void Scene_LoadGame(string Scene)
-    {
-        string tempPath = Application.dataPath + "/" + "data_" + Scene + ".txt";
-        StreamWriter write = new StreamWriter(tempPath);
-        write.Write("Loaded_scene~0");
-        write.Close();
-        SceneManager.LoadScene(Scene);
-    }
+    /*  public void Scene_LoadGame(string Scene)
+      {
+          string tempPath = Application.dataPath + "/" + "data_" + Scene + ".txt";
+          StreamWriter write = new StreamWriter(tempPath);
+          write.Write("New_scene~0");
+          write.Close();
+          SceneManager.LoadScene(Scene);
+      }*/
 
     /// <summary>
     /// Loads a scene from a save file, used outside of said scene.
@@ -255,12 +258,29 @@ public class SaveState : MonoBehaviour
     /// </summary>
     /// <param name="Scene"> Which scene you want to load. </param>
     /// <param name="Save_index"> Which save file index you're looking for. </param>
-    public void Scene_LoadGame(string Scene, int Save_index)
+    public void Scene_LoadGame(string Scene)
     {
-        string tempPath = Application.dataPath + "/" + "data_" + Scene + ".txt";
+        string SceneTemp;
+        int Save_index;
+        try
+        {
+            SceneTemp = Scene.Split('_')[0];
+            Save_index = int.Parse(Scene.Split('_')[1]);
+            print(SceneTemp);
+            print(Save_index);
+        }
+        catch
+        {
+            SceneTemp = Scene;
+            Save_index = 42069;
+        }
+        
+        string tempPath = Application.dataPath + "/Saves/" + "data_" + SceneTemp + ".txt";
         StreamWriter write = new StreamWriter(tempPath);
-        write.Write("Loaded_scene~" + Save_index.ToString());
+        if(Save_index != 42069)
+            write.Write("Loaded_scene~" + Save_index.ToString());
+        else write.Write("New_scene");
         write.Close();
-        SceneManager.LoadScene(Scene);
+        SceneManager.LoadScene(SceneTemp);
     }
 }
